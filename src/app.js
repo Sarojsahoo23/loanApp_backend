@@ -8,6 +8,9 @@ const officerRoutes = require("./routes/officerRoutes");
 
 const app = express();
 
+// ===============================
+// CORS CONFIG
+// ===============================
 app.use(
   cors({
     origin: [
@@ -16,20 +19,66 @@ app.use(
       "https://loan-app-fronted-app.vercel.app",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.urlencoded({ extended: true }));
-app.get("/", (req, res) => {
-  res.send("API Running...");
-});
 
+// ===============================
+// BODY PARSER
+// ===============================
 app.use(express.json({ limit: "10mb" }));
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
+// ===============================
+// LOGGER
+// ===============================
 app.use(morgan("dev"));
 
+// ===============================
+// TEST ROUTE
+// ===============================
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API Running Successfully",
+  });
+});
+
+// ===============================
+// API ROUTES
+// ===============================
 app.use("/auth", authRoutes);
 
 app.use("/loans", loanRoutes);
 
 app.use("/officer", officerRoutes);
+
+// ===============================
+// 404 ROUTE
+// ===============================
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found",
+  });
+});
+
+// ===============================
+// GLOBAL ERROR HANDLER
+// ===============================
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err);
+
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
 
 module.exports = app;
