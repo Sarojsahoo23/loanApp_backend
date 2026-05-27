@@ -39,17 +39,6 @@ exports.register = async (req, res) => {
 
     // CHECK EXISTING USER
 
-    const existingUser = await User.findOne({
-      email,
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Email already exists",
-      });
-    }
-
     // HASH PASSWORD
 
     const passwordHash = await bcrypt.hash(
@@ -130,16 +119,6 @@ exports.login = async (req, res) => {
 
     // FIND USER
 
-    const user = await User.findOne({
-      email,
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
 
     // CHECK PASSWORD
 
