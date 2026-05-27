@@ -1,20 +1,23 @@
 const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose");
 
 const User = require("../models/User");
-
 const Customer = require("../models/Customer");
-
 const LoanOfficer = require("../models/LoanOfficer");
 
 const generateToken = require("../utils/generateToken");
 
+// ======================================
 // REGISTER
+// ======================================
 
-exports.register = async (
-  req,
-  res
-) => {
+exports.register = async (req, res) => {
   try {
+    console.log(
+      "Mongo Ready State:",
+      mongoose.connection.readyState
+    );
+
     const {
       name,
       email,
@@ -25,27 +28,34 @@ exports.register = async (
       branch,
     } = req.body;
 
+    // VALIDATION
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
     // CHECK EXISTING USER
 
-    const existing =
-      await User.findOne({
-        email,
-      });
+    const existingUser = await User.findOne({
+      email,
+    });
 
-    if (existing) {
+    if (existingUser) {
       return res.status(400).json({
-        message:
-          "Email already exists",
+        success: false,
+        message: "Email already exists",
       });
     }
 
     // HASH PASSWORD
 
-    const passwordHash =
-      await bcrypt.hash(
-        password,
-        10
-      );
+    const passwordHash = await bcrypt.hash(
+      password,
+      10
+    );
 
     // CREATE USER
 
@@ -75,71 +85,98 @@ exports.register = async (
       });
     }
 
-    res.status(201).json({
-      message:
-        "User registered successfully",
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
       userId: user._id,
     });
+
   } catch (error) {
-    res.status(500).json({
+
+    console.error(
+      "Register Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
 };
 
+// ======================================
 // LOGIN
+// ======================================
 
-exports.login = async (
-  req,
-  res
-) => {
+exports.login = async (req, res) => {
   try {
-    const { email, password } =
-      req.body;
+
+    console.log(
+      "Mongo Ready State:",
+      mongoose.connection.readyState
+    );
+
+    const { email, password } = req.body;
+
+    // VALIDATION
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password required",
+      });
+    }
 
     // FIND USER
 
-    const user =
-      await User.findOne({
-        email,
-      });
+    const user = await User.findOne({
+      email,
+    });
 
     if (!user) {
       return res.status(400).json({
-        message:
-          "Invalid credentials",
+        success: false,
+        message: "Invalid credentials",
       });
     }
 
     // CHECK PASSWORD
 
-    const isMatch =
-      await bcrypt.compare(
-        password,
-        user.passwordHash
-      );
+    const isMatch = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
 
     if (!isMatch) {
       return res.status(400).json({
-        message:
-          "Invalid credentials",
+        success: false,
+        message: "Invalid credentials",
       });
     }
 
     // GENERATE TOKEN
 
-    const token =
-      generateToken(user);
+    const token = generateToken(user);
 
-    res.json({
+    return res.status(200).json({
+      success: true,
       token,
       userId: user._id,
       role: user.role,
       name: user.name,
       email: user.email,
     });
+
   } catch (error) {
-    res.status(500).json({
+
+    console.error(
+      "Login Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
