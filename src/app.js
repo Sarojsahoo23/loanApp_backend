@@ -13,7 +13,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://yourfrontenddomain.com",
+      "https://loan-app-fronted-app.vercel.app",
     ],
     credentials: true,
   })
