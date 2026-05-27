@@ -8,7 +8,21 @@ const officerRoutes = require("./routes/officerRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://yourfrontenddomain.com",
+    ],
+    credentials: true,
+  })
+);
+app.use(express.urlencoded({ extended: true }));
+app.get("/", (req, res) => {
+  res.send("API Running...");
+});
+
 
 app.use(express.json());
 
